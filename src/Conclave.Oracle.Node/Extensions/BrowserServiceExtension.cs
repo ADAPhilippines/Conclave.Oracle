@@ -1,4 +1,4 @@
-using Conclave.Oracle.Node.Service;
+using Conclave.Oracle.Node.Services;
 using Microsoft.AspNetCore.Hosting.Server;
 
 namespace Conclave.Oracle.Node.Extensions;

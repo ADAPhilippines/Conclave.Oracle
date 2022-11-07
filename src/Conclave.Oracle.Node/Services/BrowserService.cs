@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using PuppeteerSharp;
 
-namespace Conclave.Oracle.Node.Service;
+namespace Conclave.Oracle.Node.Services;
 
 public class BrowserService : IAsyncDisposable
 {
@@ -46,18 +46,30 @@ public class BrowserService : IAsyncDisposable
         while (string.IsNullOrEmpty(BaseUrl = GetServerBaseUrl())) await Task.Delay(1000);
 
         Uri baseUrl = new(BaseUrl);
-        await Page.GoToAsync(new Uri(baseUrl, "index.html").ToString());
+        await Page.GoToAsync(new Uri(baseUrl, "index.html").ToString(), WaitUntilNavigation.Load);
         _logger.LogInformation($"Browser Initialized 🚀🚀🚀");
+
         IsInitialized = true;
     }
 
-    private void OnFetcherDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+    public async Task InvokeFunctionAsync(string functionName, params object[] p)
     {
-        if (LastPercentRecorded != e.ProgressPercentage)
-        {
-            LastPercentRecorded = e.ProgressPercentage;
-            _logger.LogInformation($"Browser Downloading: {e.ProgressPercentage}%");
-        }
+        if (Page is not null)
+            await Page.EvaluateFunctionAsync(functionName, p);
+    }
+
+    public async Task<T?> InvokeFunctionAsync<T>(string functionName, params object[] p)
+    {
+        if (Page is not null)
+            return await Page.EvaluateFunctionAsync<T>(functionName, p);
+        else
+            return default;
+    }
+
+    public async Task ExposeFunction(string name, Action f)
+    {
+        if (Page is not null)
+            await Page.ExposeFunctionAsync(name, f);
     }
 
     public async ValueTask DisposeAsync()
@@ -73,5 +85,14 @@ public class BrowserService : IAsyncDisposable
     {
         var addressFeature = _server.Features.Get<IServerAddressesFeature>();
         return addressFeature?.Addresses.FirstOrDefault();
+    }
+
+    private void OnFetcherDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+    {
+        if (LastPercentRecorded != e.ProgressPercentage)
+        {
+            LastPercentRecorded = e.ProgressPercentage;
+            _logger.LogInformation($"Browser Downloading: {e.ProgressPercentage}%");
+        }
     }
 }

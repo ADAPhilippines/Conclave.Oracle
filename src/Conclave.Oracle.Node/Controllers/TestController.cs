@@ -1,4 +1,4 @@
-using Conclave.Oracle.Node.Service;
+using Conclave.Oracle.Node.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Conclave.Oracle.Node.Controllers;
