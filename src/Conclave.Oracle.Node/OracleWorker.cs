@@ -26,7 +26,6 @@ public class OracleWorker : IHostedService
         });
     }
 
-
     public async Task StopAsync(CancellationToken cancellationToken)
     {
 
