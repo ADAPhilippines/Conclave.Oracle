@@ -8,7 +8,7 @@ public class FakeInteropService : BaseInteropService
     public FakeInteropService(BrowserService browserService) : base(browserService)
     {
         _browserService = browserService;
-        _ = ExposeFunctionAsync("csharp", ExposedFunction);
+        // _ = ExposeFunctionAsync("csharp", ExposedFunction);
     }
 
     public void ExposedFunction()

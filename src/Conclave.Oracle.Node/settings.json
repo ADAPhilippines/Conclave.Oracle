@@ -1,0 +1,4 @@
+{
+    "ENV_PrivateKey": "CONCLAVE_NODE_PRIVATEKEY",
+    "ENV_ContractAddress": "CONCLAVE_NODE_ORACLE_CONTRACT_ADDRESS"
+}

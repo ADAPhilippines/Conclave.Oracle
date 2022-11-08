@@ -1,10 +1,8 @@
 namespace Conclave.Oracle.Node.Services;
 
-
 interface IBaseInteropService
 {
     public Task WaitBrowserReadyAsync();
-    public Task ExposeFunctionAsync(string name, Action f);
 }
 
 public class BaseInteropService : IBaseInteropService
