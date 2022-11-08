@@ -6,7 +6,5 @@ interface IStakeable {
 
     function unstake(uint256 amount) external;
 
-    function getStake() external view returns (uint256);
-
     function getStake(address account) external view returns (uint256);
 }
