@@ -15,6 +15,9 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
+    "@blockfrost/blockfrost-js": "^5.0.0",
+    "ethers": "^5.7.2",
+    "lucid-cardano": "^0.7.2",
     "moment": "^2.29.4"
   }
 }
