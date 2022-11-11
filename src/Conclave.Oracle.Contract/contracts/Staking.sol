@@ -8,7 +8,7 @@ contract Staking is IStakeable {
     /* STAKING PROPERTIES */
     IERC20 private immutable _token;
     uint256 public s_minStake;
-    mapping(address => uint256) private s_stakes;
+    mapping(address => uint256) public s_stakes;
 
     error InsufficientBalance(uint256 requested, uint256 balance);
 
