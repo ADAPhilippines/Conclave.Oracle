@@ -16,6 +16,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
     error NodeRegisteredToAdifferentOperator(address registeredOperator);
     error NotEnoughStake(uint256 required, uint256 actual);
     error TimeLimitExceeded(uint256 timeLimit, uint256 actual);
+    error InvalidResponse(uint256 expected, uint256 actual);
 
     modifier onlyExistingRequest(uint256 jobId) {
         if (s_jobRequests[jobId].requester == address(0)) {
@@ -141,10 +142,18 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
             revert ResponseAlreadySubmitted();
         }
 
+        if (response.length != request.numCount) {
+            revert InvalidResponse(request.numCount, response.length);
+        }
+
         uint256 dataId = uint256(keccak256(abi.encode(jobId, response, request.timestamp, request.requester)));
         request.nodeDataId[msg.sender] = dataId;
         request.responseCount += 1;
         request.dataIdVotes[dataId] += 1;
+
+        if (s_jobRandomNumbers[dataId].length == 0) {
+            s_jobRandomNumbers[dataId] = response;
+        }
 
         emit ResponseSubmitted(jobId, request.requester, request.validators.length, request.responseCount);
     }
