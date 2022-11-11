@@ -8,10 +8,14 @@ interface IConclaveOracle {
         uint256 tokenFee
     ) external;
 
-    function calculateOracleFees()
+    function calculateOracleFees() external;
+
+    function getOracleFees()
         external
         view
         returns (uint256 fee, uint256 tokenFee);
 
     function fulfillRandomNumbers(uint256 jobId) external;
+
+    function distributeRewards(uint256 jobId) external;
 }
