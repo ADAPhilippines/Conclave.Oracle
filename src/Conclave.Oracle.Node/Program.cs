@@ -1,17 +1,24 @@
 using Conclave.Oracle;
 using Conclave.Oracle.Node.Extensions;
 using Conclave.Oracle.Node.Services;
-using Conclave.Oracle.Node.Settings;
+using Conclave.Oracle.Node.Models;
+using Blockfrost.Api;
+using Blockfrost.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-// Add services to the container.
-builder.Services.AddSingleton<SettingsServices>();
-builder.Services.AddSingleton<FakeInteropService>();
-builder.Services.AddSingleton<EthersJSInteropService>();
-builder.Services.AddHttpClient();
-builder.Services.AddControllers();
+
+IConfiguration config = builder.Configuration.GetSection("NodeSettings");
+string network = config.GetValue<string>("BlockFrostNetwork");
+string apiKey = config.GetValue<string>("BlockFrostAPIKey");
+
+builder.Services.Configure<SettingsParameters>(config);
+builder.Services.AddBlockFrostService(network, apiKey);
+builder.Services.AddSingleton<WalletService>();
+builder.Services.AddSingleton<OracleContractService>();
 builder.Services.AddBrowserService();
 builder.Services.AddHostedService<OracleWorker>();
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 app.UseStaticFiles();

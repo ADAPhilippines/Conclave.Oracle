@@ -18,15 +18,13 @@ public class BrowserService : IAsyncDisposable
     private IPage? Page { get; set; }
     private BrowserFetcher? BrowserFetcher { get; set; }
     private readonly IServer _server;
-    private readonly HttpClient _httpClient;
     private readonly ILogger<BrowserService> _logger;
     private int LastPercentRecorded { get; set; }
     #endregion
 
-    public BrowserService(IServer server, HttpClient httpClient, ILogger<BrowserService> logger)
+    public BrowserService(IServer server, ILogger<BrowserService> logger)
     {
         _server = server;
-        _httpClient = httpClient;
         _logger = logger;
     }
 
@@ -52,6 +50,12 @@ public class BrowserService : IAsyncDisposable
         IsInitialized = true;
     }
 
+    public async Task InvokeFunctionAsync(string functionName)
+    {
+        if (Page is not null)
+            await Page.EvaluateFunctionAsync(functionName);
+    }
+
     public async Task InvokeFunctionAsync(string functionName, params object[] p)
     {
         if (Page is not null)
@@ -59,17 +63,18 @@ public class BrowserService : IAsyncDisposable
     }
 
     public async Task<T?> InvokeFunctionAsync<T>(string functionName, params object[] p)
-    {   
+    {
         if (Page is not null)
             return await Page.EvaluateFunctionAsync<T>(functionName, p);
         else
             return default;
     }
 
-    public async Task ExposeFunction(string name, Action f)
+    public async Task ExposeFunctionAsync<T1, T2, TResult>(string name, Func<T1, T2, TResult> function)
     {
         if (Page is not null)
-            await Page.ExposeFunctionAsync(name, f);
+            await Page.ExposeFunctionAsync<T1, T2, TResult>(name, function);
+
     }
 
     public async ValueTask DisposeAsync()
@@ -85,6 +90,23 @@ public class BrowserService : IAsyncDisposable
     {
         var addressFeature = _server.Features.Get<IServerAddressesFeature>();
         return addressFeature?.Addresses.FirstOrDefault();
+    }
+
+    public async Task WaitBrowserReadyAsync()
+    {
+        while (!IsInitialized) await Task.Delay(1000);
+    }
+
+    public async Task WaitFunctionReadyAsync(string functionName)
+    {
+        try
+        {
+            await Page!.WaitForExpressionAsync($"window.{functionName} && typeof window.{functionName} == 'function'");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
     }
 
     private void OnFetcherDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
