@@ -14,7 +14,7 @@ abstract contract ConclaveOracleBase is IConclaveOracle {
         uint256 tokenFee
     ) external override {}
 
-    function calculateOracleFees() internal virtual;
+    function _calculateOracleFees() internal virtual;
 
-    function distributeRewards(uint256 jobId) internal virtual;
+    function _distributeRewards(uint256 jobId) internal virtual;
 }
