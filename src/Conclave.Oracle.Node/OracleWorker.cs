@@ -8,12 +8,12 @@ public class OracleWorker : BackgroundService
 {
     private readonly ILogger<OracleWorker> _logger;
     private readonly OracleContractService _oracleContractService;
-    private readonly BlockFrostService _blockFrostService;
+    private readonly CardanoServices _blockFrostService;
 
     public OracleWorker(
         ILogger<OracleWorker> logger,
         OracleContractService oracleContractService,
-        BlockFrostService blockFrostService) : base()
+        CardanoServices blockFrostService) : base()
     {
         _blockFrostService = blockFrostService;
         _logger = logger;

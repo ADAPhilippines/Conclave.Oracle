@@ -11,13 +11,13 @@ public class OracleContractService : ContractBase, IBrowserService
     private readonly ILogger<OracleContractService> _logger;
     private readonly BrowserService _browserService;
     public event EventHandler<RequestModel> RequestCreatedEvent;
-    private readonly BlockFrostService _blockfrostService;
+    private readonly CardanoServices _blockfrostService;
 
     public OracleContractService(
         ILogger<OracleContractService> logger,
         BrowserService browserService,
         IOptions<SettingsParameters> settings,
-        BlockFrostService blockFrostService) : base(settings.Value.ContractAddress, settings.Value.PrivateKey)
+        CardanoServices blockFrostService) : base(settings.Value.ContractAddress, settings.Value.PrivateKey)
     {
         _blockfrostService = blockFrostService;
         _logger = logger;

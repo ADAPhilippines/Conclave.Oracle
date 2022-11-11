@@ -9,12 +9,12 @@ public static class BlockFrostServiceExtension
     public static IServiceCollection AddBlockFrostService(this IServiceCollection serviceCollection, string network, string apiKey)
     {
         serviceCollection.AddBlockfrost(network, apiKey);
-        serviceCollection.AddSingleton<BlockFrostService>((serviceProvider) =>
+        serviceCollection.AddSingleton<CardanoServices>((serviceProvider) =>
         {
             var blockService = serviceProvider.GetRequiredService<IBlockService>();
 
-            BlockFrostService blockFrostService;
-            blockFrostService = new BlockFrostService(blockService);
+            CardanoServices blockFrostService;
+            blockFrostService = new CardanoServices(blockService);
             return blockFrostService;
         });
         return serviceCollection;
