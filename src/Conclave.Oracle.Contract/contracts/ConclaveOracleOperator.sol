@@ -78,9 +78,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         mapping(address => bool) /* node => isRegistered */ nodeRegistrations;
     }
 
-    mapping(uint256 => uint256[]) /* dataId => random numbers */
-        private s_jobRandomNumbers;
-
+    mapping(uint256 => uint256[]) /* dataId => random numbers */ private s_jobRandomNumbers;
     mapping(uint256 => JobRequest)/* jobId => jobRequest */ private s_jobRequests;
     mapping(address => Rewards) /* validator => rewards */ private s_validatorRewards;
     mapping(address => address) /* owner => node */ private s_ownerToNode;
