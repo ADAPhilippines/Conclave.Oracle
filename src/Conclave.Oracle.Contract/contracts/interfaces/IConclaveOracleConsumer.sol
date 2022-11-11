@@ -2,16 +2,9 @@
 pragma solidity ^0.8.17;
 
 interface IConclaveOracleConsumer {
-    function requestRandomNumber(
-        uint256 numCount,
-        uint256 fee,
-        uint256 tokenFee
+    /** fulfilling random numbers that can only be called by the conclave random number coordinator **/
+    function rawFulfillRandomNumbers(
+        uint256 requestId,
+        uint256[] memory randomNumbers
     ) external;
-
-    function getResponseCount(uint256 jobId)
-        external
-        view
-        returns (uint256 currentResponses, uint256 totalResponses);
-
-    function aggregateResponses(uint256 jobId) external;
 }
