@@ -66,7 +66,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         uint64 jobFulfillmentExpiration;
         address[] validators;
         bool isFulfilled;
-        uint256 result; /* data ID result */
+        uint256 finalResultDataId; /* data ID result */
         mapping(address => uint256) /* node => dataId */ nodeDataId; 
         mapping(uint256 => uint32) /* dataId => votes */ dataIdVotes;
         mapping(address => uint256) /* node => adaReward */ adaRewards;
