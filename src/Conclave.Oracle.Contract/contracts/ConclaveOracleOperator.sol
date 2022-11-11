@@ -45,6 +45,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         _;
     }
 
+    event NodeRegistered(address indexed node, address indexed owner);
     event JobAccepted(uint256 indexed jobId, address indexed node, uint64 jobAcceptanceExpiration);
     event ResponseSubmitted(uint256 indexed jobId, address indexed requester, uint256 totalResponseExpected, uint256 currentResponse);
 
@@ -97,6 +98,8 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
 
         s_ownerToNode[msg.sender] = node;
         s_nodeToOwner[node] = msg.sender;
+
+        emit NodeRegistered(node, msg.sender);
     }
 
     function acceptJob(uint256 jobId, uint256 minFeeReward, uint256 minTokenFeeReward) 
