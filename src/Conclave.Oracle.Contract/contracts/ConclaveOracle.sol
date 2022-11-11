@@ -9,7 +9,7 @@ contract ConclaveOracle is ConclaveOracleBase, ConclaveOracleOperator {
         ConclaveOracleOperator(token, minValidatorStake)
     {}
 
-    function calculateOracleFees() internal virtual override {}
+    function _calculateOracleFees() internal virtual override {}
 
-    function distributeRewards(uint256 jobId) internal virtual override {}
+    function _distributeRewards(uint256 jobId) internal virtual override {}
 }
