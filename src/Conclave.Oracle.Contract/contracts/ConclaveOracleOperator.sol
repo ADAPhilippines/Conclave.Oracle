@@ -146,7 +146,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
             revert InvalidResponse(request.numCount, response.length);
         }
 
-        uint256 dataId = uint256(keccak256(abi.encode(jobId, response, request.timestamp, request.requester)));
+        uint256 dataId = _getDataId(jobId, response, request.timestamp, request.requester);
         request.nodeDataId[msg.sender] = dataId;
         request.responseCount += 1;
         request.dataIdVotes[dataId] += 1;
@@ -208,5 +208,17 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         returns (uint256, uint256)
     {
         return (s_validatorRewards[msg.sender].ada, s_validatorRewards[msg.sender].token);
+    }
+
+    function _getRandomNumbers(uint256 dataId)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return s_jobRandomNumbers[dataId];
+    }
+
+    function _getDataId(uint256 jobId, uint256[] calldata data, uint64 timestamp, address requester) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encode(jobId, data, timestamp, requester)));
     }
 }
