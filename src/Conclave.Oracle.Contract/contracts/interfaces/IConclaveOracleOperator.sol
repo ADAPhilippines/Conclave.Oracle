@@ -24,13 +24,6 @@ interface IConclaveOracleOperator {
             address[] memory validators
         );
 
-    function distributeRewards(uint256 jobId) external;
-
-    function getOracleFees()
-        external
-        view
-        returns (uint256 fee, uint256 tokenFee);
-
     function isJobReady(uint256 jobId) external view returns (bool);
 
     function isResponseSubmitted(uint256 jobId) external view returns (bool);
