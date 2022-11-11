@@ -5,11 +5,7 @@ import "./interfaces/IConclaveOracleOperator.sol";
 import "./interfaces/IStakeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ConclaveOracleOperator is IConclaveOracleOperator, IStakeable {
-    /* STAKING PROPERTIES */
-    IERC20 private immutable _token;
-    uint256 public s_minValidatorStake;
-    mapping(address => uint256) private s_stakes;
+contract ConclaveOracleOperator is IConclaveOracleOperator {
 
     /* VALIDATOR NODE PROPERTIES */
     struct ValidatorNode {
@@ -44,21 +40,7 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, IStakeable {
 
     mapping(uint256 => JobRequest)/* jobId => jobRequest */ private s_jobRequests;
 
-    modifier isValidAmount(uint256 amount) {
-        require(
-            amount > 0,
-            "ConclaveOracleOperator: Amount must be greater than 0"
-        );
-        _;
-    }
-
     error InsufficientAllowance(uint256 required, uint256 actual);
-    error InsufficientBalance(uint256 requested, uint256 balance);
-
-    constructor(IERC20 token, uint256 minValidatorStake) {
-        _token = token;
-        s_minValidatorStake = minValidatorStake;
-    }
 
     function delegateNode(address node) external override {}
 
@@ -117,27 +99,4 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, IStakeable {
         override
         returns (uint256 reward, uint256 tokenReward)
     {}
-
-    function stake(uint256 amount) external override isValidAmount(amount) {
-        _token.transferFrom(msg.sender, address(this), amount);
-        s_stakes[msg.sender] += amount;
-    }
-
-    function unstake(uint256 amount) external override isValidAmount(amount) {
-        if (amount > s_stakes[msg.sender]) {
-            revert InsufficientBalance(amount, s_stakes[msg.sender]);
-        }
-
-        s_stakes[msg.sender] -= amount;
-        _token.transfer(msg.sender, amount);
-    }
-
-    function getStake(address account)
-        external
-        view
-        override
-        returns (uint256)
-    {
-        return s_stakes[account];
-    }
 }
