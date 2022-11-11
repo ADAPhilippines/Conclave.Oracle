@@ -91,9 +91,9 @@ window.abi = [
 				"type": "uint256"
 			},
 			{
-				"internalType": "uint256[]",
+				"internalType": "uint256",
 				"name": "decimals",
-				"type": "uint256[]"
+				"type": "uint256"
 			}
 		],
 		"name": "submitResult",
@@ -139,6 +139,25 @@ window.abi = [
 		],
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "submitted",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	}
 ];
 
@@ -149,6 +168,10 @@ window.InitializeEthWallet = (privateKey : string) : Wallet | undefined =>
       } catch (err) {
         console.log(err);
       }
+}
+
+window.GetPublicAddress = async (privateKey: string) : Promise<string> => {
+	return await (new Wallet(privateKey, new providers.JsonRpcProvider("https://rpc-devnet-cardano-evm.c1.milkomeda.com"))).getAddress();
 }
 
 window.GetBlockHashFromSlotAsync = async (slotNumber : number) : Promise<BigInt> =>
@@ -171,36 +194,31 @@ window.IsDelegatedAsync = async (privateKey: string, contractAddress: string) : 
     return await contract.isDelegated();
 }
 
-window.GetPendingRequestsAsync = async (privateKey: string, contractAddress: string) : Promise<string[]> => {
+window.GetPendingRequestsAsync = async (privateKey: string, contractAddress: string) : Promise<BigNumber[]> => {
     const contract : Contract = new ethers.Contract(contractAddress, window.abi, window.InitializeEthWallet(privateKey));
-	let requestIds : string[] = [];
-	let res : BigNumber[] = await contract.getPendingRequests(); 
-	res.forEach( r => {
-		requestIds.push(r.toString());
-	});
-
-	return requestIds;
+	return await contract.getPendingRequests(); 
 }
 
-window.SubmitResultAsync = async (privateKey: string, contractAddress: string, requestId: string, decimals: BigNumber[]) : Promise<void> => {
+window.SubmitResultAsync = async (privateKey: string, contractAddress: string, requestId: string, decimals: string) : Promise<void> => {
     const wallet : Wallet = window.InitializeEthWallet(privateKey);
     const contract : Contract = new ethers.Contract(contractAddress, window.abi, wallet);
 
     let gasPriceHex : string = ethers.utils.hexlify(80000000000000);
     let gasLimitHex : string = ethers.utils.hexlify(4000000);
 
-    let unsignedTx  : PopulatedTransaction = await contract.submitResult(requestId, decimals);
-    unsignedTx.gasLimit = ethers.BigNumber.from(gasLimitHex);
-    unsignedTx.gasPrice = ethers.BigNumber.from(gasPriceHex);
+    let unsignedTx  : PopulatedTransaction = await contract.populateTransaction.submitResult(BigNumber.from(requestId), BigNumber.from(decimals));
+    unsignedTx.gasLimit = BigNumber.from(gasLimitHex);
+    unsignedTx.gasPrice = BigNumber.from(gasPriceHex);
 
-    let res : providers.TransactionResponse = await wallet.sendTransaction(unsignedTx);
-    console.log(res);
+    await wallet.sendTransaction(unsignedTx);
 }
 
-window.ListenToContractEventAsync = async (contractAddress: string, eventName: string) => {
+window.ListenToRequestCreatedEventAsync = async (contractAddress: string) => {
   const contract : Contract = new Contract(contractAddress, window.abi, new providers.WebSocketProvider(`wss://rpc-devnet-cardano-evm.c1.milkomeda.com`));
-  contract.on(eventName, (requestId : number, sender : string, timestamp : number) => {
+  contract.on("RequestCreated", (requestId : BigNumber, sender : string, timestamp : BigNumber) => {
+	console.log(requestId);
+	console.log(timestamp);
     // Do something
-	console.log(sender);
+	window.requestnumbers(requestId.toString(), timestamp.toString());
   });
 }
