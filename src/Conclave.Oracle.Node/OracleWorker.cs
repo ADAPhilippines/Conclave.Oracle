@@ -44,8 +44,8 @@ public class OracleWorker : BackgroundService
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {       
-        await _ethereumWalletServices.WaitBrowserReadyAsync();     
+    {
+        await _ethereumWalletServices.WaitBrowserReadyAsync();
         nonce = await _ethereumWalletServices.GetTransactionCount();
         string? balance = await _ethereumWalletServices.GetBalance();
         _logger.LogInformation($"nonce is {nonce.ToString()}");
@@ -59,7 +59,7 @@ public class OracleWorker : BackgroundService
         {
             _logger.LogInformation("Starting Oracle Node...");
             await _oracleContractService.WaitBrowserReadyAsync();
-            
+
             await _oracleContractService.ExposeRequestTrigger("requestnumbers", _oracleContractService.RequestNumbers);
             _logger.LogInformation("Oracle Node Started...");
             await CheckPrivateKeyDelegationAsync();

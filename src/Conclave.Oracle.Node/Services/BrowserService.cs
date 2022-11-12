@@ -39,6 +39,7 @@ public class BrowserService : IAsyncDisposable
         {
             Headless = true
         });
+
         _logger.LogInformation("Browser launched succesfully.");
         Page = await Browser.NewPageAsync();
         while (string.IsNullOrEmpty(BaseUrl = GetServerBaseUrl())) await Task.Delay(1000);
@@ -70,10 +71,10 @@ public class BrowserService : IAsyncDisposable
             return default;
     }
 
-    public async Task ExposeFunctionAsync<T1, T2, TResult>(string name, Func<T1, T2, TResult> function)
+    public async Task ExposeFunctionAsync<T1, T2, T3, TResult>(string name, Func<T1, T2, T3, TResult> function)
     {
         if (Page is not null)
-            await Page.ExposeFunctionAsync<T1, T2, TResult>(name, function);
+            await Page.ExposeFunctionAsync<T1, T2, T3, TResult>(name, function);
 
     }
 

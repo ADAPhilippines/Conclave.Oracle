@@ -1,87 +1,68 @@
 using Conclave.Oracle.Node.Models;
-using Conclave.Oracle.Node.Interfaces;
+using Conclave.Oracle.Node.Services.Interfaces;
 using Microsoft.Extensions.Options;
-using Conclave.Oracle.Node.Utils;
+using Conclave.Oracle.Node.Services.Bases;
 using Conclave.Oracle.Node.Constants;
+using System.Numerics;
+using System.Globalization;
 
 namespace Conclave.Oracle.Node.Services;
 
-public class OracleContractService : ContractBase, IBrowserService
+public class OracleContractService : ContractServiceBase, IBrowserService
 {
     private readonly ILogger<OracleContractService> _logger;
     private readonly BrowserService _browserService;
-    public event EventHandler<RequestModel> RequestCreatedEvent;
-    private readonly CardanoServices _blockfrostService;
+    private readonly CardanoServices _cardanoService;
+    public event EventHandler<RequestModel>? RequestCreatedEvent;
 
     public OracleContractService(
         ILogger<OracleContractService> logger,
         BrowserService browserService,
         IOptions<SettingsParameters> settings,
-        CardanoServices blockFrostService) : base(settings.Value.ContractAddress, settings.Value.PrivateKey)
+        CardanoServices cardanoService) : base(settings.Value.ContractAddress, settings.Value.PrivateKey, settings.Value.EthereumRPC)
     {
-        _blockfrostService = blockFrostService;
+        _cardanoService = cardanoService;
         _logger = logger;
         _browserService = browserService;
-        RequestCreatedEvent += async (sender, e) =>
-        {
-            _logger.LogInformation($"Received request {e.RequestId}");
-            int slot = NetworkConstants.Preview.UnixTimeMsToSlot(UInt64.Parse(e.Timestamp));
-
-            _logger.LogInformation(slot.ToString());
-            int _slot = 1240682;
-            string blockhash = await _blockfrostService.GetBlockHashFromSlot(_slot);
-            Console.WriteLine(blockhash);
-            string decimalValue = StringUtils.HexToDecimal(blockhash);
-            Console.WriteLine(decimalValue);
-            await SubmitResultAsync(e.RequestId, decimalValue);
-            _logger.LogInformation($"RequestId {e.RequestId} Submitted");
-        };
-    }
-
-    public RequestModel RequestNumbers(string requestId, string timeslot)
-    {
-        RequestModel req = new(requestId, timeslot);
-        RequestCreatedEvent?.Invoke(this, new RequestModel(requestId, timeslot));
-        return req;
     }
 
     public async Task<bool> IsDelegatedAsync()
     {
-        return await _browserService.InvokeFunctionAsync<bool>("IsDelegatedAsync", PrivateKey, ContractAddress);
+        return await _browserService.InvokeFunctionAsync<bool>("IsDelegatedAsync", PrivateKey, ContractAddress, RPC);
     }
 
-    public async Task<List<BigNumberModel>?> GetPendingRequestsAsync()
+    public async Task<List<JSBigNumber>?> GetPendingRequestsAsync()
     {
-        return await _browserService.InvokeFunctionAsync<List<BigNumberModel>>("GetPendingRequestsAsync", PrivateKey, ContractAddress);
+        return await _browserService.InvokeFunctionAsync<List<JSBigNumber>>("GetPendingRequestsAsync", PrivateKey, ContractAddress, RPC);
     }
 
-    public async Task SubmitResultAsync(string requestId, string decimals)
+    public async Task SubmitResultAsync(string requestId, List<string> decimals, int nonce)
     {
-        await _browserService.InvokeFunctionAsync("SubmitResultAsync", PrivateKey, ContractAddress, requestId, decimals);
+        await _browserService.InvokeFunctionAsync("SubmitResultAsync", PrivateKey, ContractAddress, requestId, decimals, nonce, RPC);
     }
 
     public async Task ListenToRequestCreatedEventAsync()
     {
-        await _browserService.InvokeFunctionAsync("ListenToRequestCreatedEventAsync", ContractAddress);
+        await _browserService.InvokeFunctionAsync("ListenToRequestCreatedEventAsync", ContractAddress, RPC);
     }
 
-    public async Task WaitBrowserReadyAsync()
+    public RequestModel RequestNumbers(string requestId, string timeslot, string numberOfDecimals)
     {
-        await _browserService.WaitBrowserReadyAsync();
+        RequestModel req = new(requestId, timeslot, numberOfDecimals);
+        RequestCreatedEvent?.Invoke(null, req);
+        return req;
     }
 
-    public async Task ExposeRequestTrigger(string functionName, Func<string, string, RequestModel> function)
+    public async Task ExposeRequestTrigger(string functionName, Func<string, string, string, RequestModel> function)
     {
-        await _browserService.ExposeFunctionAsync<string, string, RequestModel>(functionName, function);
+        await _browserService.ExposeFunctionAsync<string, string, string, RequestModel>(functionName, function);
         _logger.LogInformation($"Waiting for function {functionName} to be exposed...");
         await _browserService.WaitFunctionReadyAsync(functionName);
         _logger.LogInformation($"function {functionName} is exposed...");
     }
 
-    public async Task CallEvent(string functioname)
+    public async Task WaitBrowserReadyAsync()
     {
-        await WaitBrowserReadyAsync();
-        await _browserService.WaitFunctionReadyAsync(functioname);
-        await _browserService.InvokeFunctionAsync(functioname, "131213", "1668090827832");
+        await _browserService.WaitBrowserReadyAsync();
     }
 }
