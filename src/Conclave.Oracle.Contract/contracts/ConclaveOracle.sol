@@ -34,8 +34,9 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         IERC20 token,
         uint256 minValidatorStake,
         uint256 jobAcceptanceTimeLimitInSeconds,
-        uint256 jobFulfillmentLimitPerNumberInSeconds
-    ) ConclaveOracleOperator(token, minValidatorStake) {
+        uint256 jobFulfillmentLimitPerNumberInSeconds,
+        uint256 slashingAmount
+    ) ConclaveOracleOperator(token, minValidatorStake, slashingAmount) {
         s_jobAcceptanceTimeLimitInSeconds = jobAcceptanceTimeLimitInSeconds;
         s_jobFulfillmentLimitPerNumberInSeconds = jobFulfillmentLimitPerNumberInSeconds;
     }

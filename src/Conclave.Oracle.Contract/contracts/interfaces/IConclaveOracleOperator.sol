@@ -35,4 +35,6 @@ interface IConclaveOracleOperator {
         external
         view
         returns (uint256 reward, uint256 tokenReward);
+
+    function claimPendingRewards() external;
 }
