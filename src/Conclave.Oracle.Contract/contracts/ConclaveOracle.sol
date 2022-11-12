@@ -15,8 +15,6 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
     uint256 s_totalFeePerNum;
     uint256 s_totalTokenFee;
     uint256 s_totalTokenFeePerNum;
-    uint256 s_feesCollected;
-    uint256 s_tokenFeesCollected;
 
     uint256 nonce;
 
@@ -35,8 +33,18 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         uint256 minValidatorStake,
         uint256 jobAcceptanceTimeLimitInSeconds,
         uint256 jobFulfillmentLimitPerNumberInSeconds,
-        uint256 slashingAmount
-    ) ConclaveOracleOperator(token, minValidatorStake, slashingAmount) {
+        uint256 slashingAmount,
+        uint256 minAdaStakingRewards,
+        uint256 minTokenStakingRewards
+    )
+        ConclaveOracleOperator(
+            token,
+            minValidatorStake,
+            slashingAmount,
+            minAdaStakingRewards,
+            minTokenStakingRewards
+        )
+    {
         s_jobAcceptanceTimeLimitInSeconds = jobAcceptanceTimeLimitInSeconds;
         s_jobFulfillmentLimitPerNumberInSeconds = jobFulfillmentLimitPerNumberInSeconds;
     }
@@ -135,7 +143,6 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
             randomNumbers = _getRandomNumbers(finalDataId);
             s_totalFulfilled++;
 
-            // update oracle fees
             s_feesCollected += _calculateShare(
                 10 * 100,
                 (jobRequest.baseAdaFee +
@@ -146,6 +153,8 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
                 (jobRequest.baseTokenFee +
                     (jobRequest.tokenFeePerNum * jobRequest.numCount))
             );
+
+            // update oracle fees
             _calculateOracleFees(
                 jobRequest.baseTokenFee,
                 jobRequest.adaFeePerNum,
@@ -167,10 +176,6 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         s_totalTokenFee += tokenFee / s_totalFulfilled;
         s_totalTokenFeePerNum += tokenFeePerNum / s_totalFulfilled;
     }
-
-    function _distributeRewards(uint256 jobId) internal {}
-
-    function _slashInvalidVotes(uint256 jobId) internal {}
 
     function _refundFees(uint256 jobId) internal {
         JobRequest storage jobRequest = s_jobRequests[jobId];
