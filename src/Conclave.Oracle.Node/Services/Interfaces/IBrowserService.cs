@@ -1,4 +1,4 @@
-namespace Conclave.Oracle.Node.Interfaces;
+namespace Conclave.Oracle.Node.Services.Interfaces;
 
 interface IBrowserService
 {
