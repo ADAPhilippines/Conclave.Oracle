@@ -58,8 +58,10 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
     /* ORACLE PROPERTIES */
     struct JobRequest {
         uint256 jobId;
-        uint256 adaFee;
-        uint256 tokenFee;
+        uint256 baseAdaFee;
+        uint256 baseTokenFee;
+        uint256 adaFeePerNum;
+        uint256 tokenFeePerNum;
         address requester;
         uint256 responseCount;
         uint24 numCount;
@@ -162,15 +164,19 @@ contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         override
         returns (
             uint256 fee,
+            uint256 feePerNum,
             uint256 tokenFee,
+            uint256 tokenFeePerNum,
             uint256 numCount,
             uint256 acceptanceTimeLimit,
             address[] memory validators
         )
     {
         return (
-            s_jobRequests[jobId].adaFee,
-            s_jobRequests[jobId].tokenFee,
+            s_jobRequests[jobId].baseAdaFee,
+            s_jobRequests[jobId].adaFeePerNum,
+            s_jobRequests[jobId].baseTokenFee,
+            s_jobRequests[jobId].tokenFeePerNum,
             s_jobRequests[jobId].numCount,
             s_jobRequests[jobId].jobAcceptanceExpiration,
             s_jobRequests[jobId].validators
