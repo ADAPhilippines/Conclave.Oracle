@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Staking is IStakeable {
     /* STAKING PROPERTIES */
-    IERC20 private immutable _token;
+    IERC20 public immutable _token;
     uint256 public s_minStake;
     mapping(address => uint256) public s_stakes;
 
