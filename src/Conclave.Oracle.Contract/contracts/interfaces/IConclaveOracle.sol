@@ -16,4 +16,14 @@ interface IConclaveOracle {
         external
         payable
         returns (uint256[] memory);
+
+    function getAverageOracleFees()
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
 }

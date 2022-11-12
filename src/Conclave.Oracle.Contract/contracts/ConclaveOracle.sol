@@ -12,9 +12,13 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
     uint256 s_jobFulfillmentLimitPerNumberInSeconds;
     uint256 s_totalFulfilled;
     uint256 s_totalFee;
+    uint256 s_totalFeeAverage;
     uint256 s_totalFeePerNum;
+    uint256 s_totalFeePerNumAverage;
     uint256 s_totalTokenFee;
+    uint256 s_totalTokenFeeAverage;
     uint256 s_totalTokenFeePerNum;
+    uint256 s_totalTokenFeePerNumAverage;
 
     uint256 nonce;
 
@@ -165,16 +169,39 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         }
     }
 
+    function getAverageOracleFees()
+        external
+        view
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return (
+            s_totalFeeAverage,
+            s_totalFeePerNumAverage,
+            s_totalTokenFeeAverage,
+            s_totalTokenFeePerNumAverage
+        );
+    }
+
     function _calculateOracleFees(
         uint256 fee,
         uint256 feePerNum,
         uint256 tokenFee,
         uint256 tokenFeePerNum
     ) internal {
-        s_totalFee += fee / s_totalFulfilled;
-        s_totalFeePerNum += feePerNum / s_totalFulfilled;
-        s_totalTokenFee += tokenFee / s_totalFulfilled;
-        s_totalTokenFeePerNum += tokenFeePerNum / s_totalFulfilled;
+        s_totalFee += fee;
+        s_totalFeeAverage = s_totalFee / s_totalFulfilled;
+        s_totalFeePerNum += feePerNum;
+        s_totalFeePerNumAverage = s_totalFeePerNum / s_totalFulfilled;
+        s_totalTokenFee += tokenFee;
+        s_totalTokenFeeAverage = s_totalTokenFee / s_totalFulfilled;
+        s_totalTokenFeePerNum += tokenFeePerNum;
+        s_totalTokenFeePerNumAverage = s_totalTokenFeePerNum / s_totalFulfilled;
     }
 
     function _refundFees(uint256 jobId) internal {
