@@ -6,4 +6,5 @@ public record SettingsParameters
     public string ContractAddress { get; init; } = string.Empty;
     public string BlockFrostNetwork { get; init; } = string.Empty;
     public string BlockFrostAPIKey { get; init; } = string.Empty;
+    public string EthereumRPC { get; init; } = string.Empty;
 }
