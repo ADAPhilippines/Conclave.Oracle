@@ -83,6 +83,10 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         mapping(address => bool) /* node => isRegistered */ nodeRegistrations;
     }
 
+    uint256 private s_totalResultsSubmitted;
+    uint256 private s_totalRandomNumbers;
+    uint256 private s_averageRandomNumber;
+
     mapping(uint256 => uint256[]) /* dataId => random numbers */ private s_jobRandomNumbers;
     mapping(address => Rewards) /* validator => rewards */ private s_validatorRewards;
     mapping(address => address) /* owner => node */ private s_ownerToNode;
@@ -170,6 +174,10 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         if (request.dataIdVotes[dataId] == 1) {
             request.dataIds.push(dataId);
         }
+
+        s_totalResultsSubmitted++;
+        s_totalRandomNumbers += dataId;
+        s_averageRandomNumber = s_totalRandomNumbers / s_totalResultsSubmitted;
 
         emit ResponseSubmitted(jobId, request.requester, request.validators.length, request.responseCount);
     }
