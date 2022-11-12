@@ -3,17 +3,27 @@ pragma solidity ^0.8.17;
 
 import "./abstracts/ConclaveOracleOperator.sol";
 import "./interfaces/IConclaveOracle.sol";
+import "./interfaces/IConclaveOracleConsumer.sol";
 
 contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
     uint32 s_minNumCount = 1;
     uint32 s_maxNumCount = 500;
     uint256 s_jobAcceptanceTimeLimitInSeconds;
     uint256 s_jobFulfillmentLimitPerNumberInSeconds;
+    uint256 s_totalFulfilled;
+    uint256 s_totalFee;
+    uint256 s_totalFeePerNum;
+    uint256 s_totalTokenFee;
+    uint256 s_totalTokenFeePerNum;
+    uint256 s_feesCollected;
+    uint256 s_tokenFeesCollected;
 
     uint256 nonce;
 
     error ValueMismatch(uint256 stated, uint256 actual);
     error NumberCountNotInRange(uint256 min, uint256 max, uint256 actual);
+    error NotAuthorized();
+    error InvalidValidatorRange();
 
     event JobRequestCreated(uint256 jobId, uint32 indexed numCount);
 
@@ -24,17 +34,8 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         IERC20 token,
         uint256 minValidatorStake,
         uint256 jobAcceptanceTimeLimitInSeconds,
-        uint256 jobFulfillmentLimitPerNumberInSeconds,
-        uint24 minValidator,
-        uint24 maxValidator
-    )
-        ConclaveOracleOperator(
-            token,
-            minValidatorStake,
-            minValidator,
-            maxValidator
-        )
-    {
+        uint256 jobFulfillmentLimitPerNumberInSeconds
+    ) ConclaveOracleOperator(token, minValidatorStake) {
         s_jobAcceptanceTimeLimitInSeconds = jobAcceptanceTimeLimitInSeconds;
         s_jobFulfillmentLimitPerNumberInSeconds = jobFulfillmentLimitPerNumberInSeconds;
     }
@@ -46,13 +47,19 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
         uint256 fee,
         uint256 feePerNum,
         uint256 tokenFee,
-        uint256 tokenFeePerNum
+        uint256 tokenFeePerNum,
+        uint24 minValidator,
+        uint24 maxValidator
     ) external payable returns (uint256 jobId) {
         uint256 totalFee = fee + (numCount * feePerNum);
         uint256 totalTokenFee = tokenFee + (numCount * tokenFeePerNum);
 
         if (msg.value != totalFee) {
             revert ValueMismatch(msg.value, totalFee);
+        }
+
+        if (minValidator < 1 || maxValidator < minValidator) {
+            revert InvalidValidatorRange();
         }
 
         if (numCount < s_minNumCount || numCount > s_maxNumCount) {
@@ -92,15 +99,78 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
 
     function aggregateResult(uint256 jobId)
         external
+        payable
         override
-        returns (uint256)
-    {}
+        onlyExistingRequest(jobId)
+        onlyWithinTimeLimit(_getJobRequest(jobId).jobFulfillmentExpiration)
+        returns (uint256[] memory randomNumbers)
+    {
+        JobRequest storage jobRequest = s_jobRequests[jobId];
 
-    function _fulfillRandomNumbers(uint256 jobId) internal {}
+        if (msg.sender != jobRequest.requester) {
+            revert NotAuthorized();
+        }
 
-    function _calculateOracleFees() internal {}
+        if (jobRequest.minValidator < jobRequest.responseCount) {
+            _refundFees(jobId);
+        } else {
+            uint256 finalDataId;
+            uint32 maxResponses;
+
+            for (uint256 i = 0; i < jobRequest.dataIds.length; i++) {
+                if (
+                    jobRequest.dataIdVotes[jobRequest.dataIds[i]] > maxResponses
+                ) {
+                    maxResponses = jobRequest.dataIdVotes[
+                        jobRequest.dataIds[i]
+                    ];
+                    finalDataId = jobRequest.dataIds[i];
+                }
+            }
+
+            jobRequest.finalResultDataId = finalDataId;
+
+            randomNumbers = _getRandomNumbers(finalDataId);
+            return randomNumbers;
+        }
+    }
+
+    function _calculateOracleFees(
+        uint256 fee,
+        uint256 feePerNum,
+        uint256 tokenFee,
+        uint256 tokenFeePerNum
+    ) internal {
+        s_totalFee += fee / s_totalFulfilled;
+        s_totalFeePerNum += feePerNum / s_totalFulfilled;
+        s_totalTokenFee += tokenFee / s_totalFulfilled;
+        s_totalTokenFeePerNum += tokenFeePerNum / s_totalFulfilled;
+    }
 
     function _distributeRewards(uint256 jobId) internal {}
+
+    function _slashInvalidVotes(uint256 jobId) internal {}
+
+    function _calculateCompleteness(
+        uint32 responses,
+        uint256 totalExpectedResponses
+    ) internal pure returns (uint256) {
+        return (responses * 10_000) / totalExpectedResponses;
+    }
+
+    function _refundFees(uint256 jobId) internal {
+        JobRequest storage jobRequest = s_jobRequests[jobId];
+
+        uint256 totalFee = jobRequest.baseAdaFee +
+            (jobRequest.numCount * jobRequest.adaFeePerNum);
+
+        uint256 totalTokenFee = jobRequest.baseTokenFee +
+            (jobRequest.numCount * jobRequest.tokenFeePerNum);
+
+        _token.transfer(jobRequest.requester, totalTokenFee);
+        payable(jobRequest.requester).transfer(totalFee);
+        IConclaveOracleConsumer(jobRequest.requester).refundRequest(jobId);
+    }
 
     function _getJobId(
         address requester,
