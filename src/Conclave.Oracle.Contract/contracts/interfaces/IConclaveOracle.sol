@@ -2,11 +2,9 @@
 pragma solidity ^0.8.17;
 
 interface IConclaveOracle {
-    function fulfillRandomNumbers(uint256 jobId) external;
-
-    function createJobRequest(
-        uint256 numCount,
+    function requestRandomNumbers(
+        uint32 numCount,
         uint256 fee,
         uint256 tokenFee
-    ) external;
+    ) external payable returns (uint256 jobId);
 }
