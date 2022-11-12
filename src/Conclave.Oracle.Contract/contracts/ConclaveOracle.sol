@@ -129,7 +129,7 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
             }
 
             jobRequest.finalResultDataId = finalDataId;
-
+            jobRequest.isFulfilled = true;
             randomNumbers = _getRandomNumbers(finalDataId);
             return randomNumbers;
         }

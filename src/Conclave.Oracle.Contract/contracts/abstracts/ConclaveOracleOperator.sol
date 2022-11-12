@@ -87,6 +87,7 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
     mapping(address => Rewards) /* validator => rewards */ private s_validatorRewards;
     mapping(address => address) /* owner => node */ private s_ownerToNode;
     mapping(address => address) /* node => owner */ private s_nodeToOwner;
+    mapping(address => uint256[]) /* node => pendingRewardJobIds */ private s_pendingRewardJobIds;
 
     constructor(IERC20 token, uint256 minValidatorStake ) Staking(token, minValidatorStake) {
 
@@ -168,6 +169,8 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         if (request.dataIdVotes[dataId] == 1) {
             request.dataIds.push(dataId);
         }
+
+        s_pendingRewardJobIds[msg.sender].push(jobId);
 
         emit ResponseSubmitted(jobId, request.requester, request.validators.length, request.responseCount);
     }
