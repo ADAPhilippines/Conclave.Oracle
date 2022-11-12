@@ -1,6 +1,4 @@
 using Blockfrost.Api;
-using Blockfrost.Api.Extensions;
-using System.Numerics;
 
 namespace Conclave.Oracle.Node.Services;
 
@@ -12,15 +10,44 @@ public class CardanoServices
         _blockService = iblockService;
     }
 
-    public async Task<string> GetBlockHashFromSlot(int slot)
+    public async Task<string> GetNearestBlockHashFromSlot(int slot)
     {
-        BlockContentResponse res = await _blockService.GetSlotAsync(slot);
-        return res.Hash;
+        BlockContentResponse? blockBefore = null;
+        BlockContentResponse? blockAfter = null;
+        int blockDelta = 0;
+
+        while (blockAfter is null && blockBefore is null)
+        {
+            blockAfter = await GetBlockFromSlot(slot + blockDelta);
+            if (slot is not 0)
+                blockBefore = await GetBlockFromSlot(slot - blockDelta);
+            blockDelta++;
+        }
+        return blockAfter?.Hash ?? blockBefore?.Hash!;
     }
 
-    public async Task<string> GetNextBlockHashCurrentHash(string blockHash, int nextBlocks)
+    public async Task<BlockContentResponse?> GetBlockFromSlot(int slot)
     {
-        List<BlockContentResponse>? res = await _blockService.GetNextBlockAsync(blockHash, nextBlocks, 1) as List<BlockContentResponse>;
-        return res?[0].Hash ?? string.Empty;
+        try
+        {
+            return await _blockService.GetSlotAsync(slot);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<List<string>> GetNextBlocksFromCurrentHash(string blockHash, int nextBlocks)
+    {
+        List<string> blockHashes = new List<string>() { blockHash };
+        List<BlockContentResponse>? blockresponse = null;
+
+        if (nextBlocks is not 0)
+            blockresponse = await _blockService.GetNextBlockAsync(blockHash, nextBlocks, 1) as List<BlockContentResponse>;
+        if (blockresponse is not null)
+            blockHashes.AddRange(blockresponse.Select(r => r.Hash));
+
+        return blockHashes;
     }
 }
