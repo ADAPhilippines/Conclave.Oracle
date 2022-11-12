@@ -194,6 +194,13 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         s_distributorRandomNumber = uint256(keccak256(abi.encodePacked(s_distributorRandomNumber, dataId, block.timestamp)));
 
         emit ResponseSubmitted(jobId, request.requester, request.validators.length, request.responseCount);
+
+        // Check if it's time to distribute staking rewards and if msg.sender is the distributor and then distribute rewards
+        if (s_feesCollected >= s_minAdaStakingRewards && s_tokenFeesCollected >= s_minTokenStakingRewards) {
+            if (_isDistributorNode(msg.sender)) {
+                _distributeStakingRewards(msg.sender);
+            }
+        }
     }
 
     function getJobDetails(uint256 jobId)
