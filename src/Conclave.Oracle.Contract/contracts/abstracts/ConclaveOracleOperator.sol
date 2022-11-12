@@ -127,6 +127,7 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         }
 
         request.nodeRegistrations[msg.sender] = true;
+        s_pendingRewardJobIds[msg.sender].push(jobId);
 
         emit JobAccepted(jobId, msg.sender, request.jobAcceptanceExpiration);
     }
@@ -169,8 +170,6 @@ abstract contract ConclaveOracleOperator is IConclaveOracleOperator, Staking {
         if (request.dataIdVotes[dataId] == 1) {
             request.dataIds.push(dataId);
         }
-
-        s_pendingRewardJobIds[msg.sender].push(jobId);
 
         emit ResponseSubmitted(jobId, request.requester, request.validators.length, request.responseCount);
     }
