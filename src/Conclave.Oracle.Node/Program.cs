@@ -2,8 +2,6 @@ using Conclave.Oracle;
 using Conclave.Oracle.Node.Extensions;
 using Conclave.Oracle.Node.Services;
 using Conclave.Oracle.Node.Models;
-using Blockfrost.Api;
-using Blockfrost.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,9 +11,9 @@ string apiKey = config.GetValue<string>("BlockFrostAPIKey");
 
 builder.Services.Configure<SettingsParameters>(config);
 builder.Services.AddBlockFrostService(network, apiKey);
-builder.Services.AddSingleton<WalletService>();
-builder.Services.AddSingleton<OracleContractService>();
 builder.Services.AddBrowserService();
+builder.Services.AddSingleton<EthereumWalletServices>();
+builder.Services.AddSingleton<OracleContractService>();
 builder.Services.AddHostedService<OracleWorker>();
 builder.Services.AddControllers();
 
