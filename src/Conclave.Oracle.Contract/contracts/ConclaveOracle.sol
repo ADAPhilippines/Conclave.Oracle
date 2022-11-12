@@ -128,9 +128,29 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
                 }
             }
 
+            // finalize request properties
             jobRequest.finalResultDataId = finalDataId;
             jobRequest.isFulfilled = true;
             randomNumbers = _getRandomNumbers(finalDataId);
+            s_totalFulfilled++;
+
+            // update oracle fees
+            s_feesCollected += _calculateShare(
+                10 * 100,
+                (jobRequest.baseAdaFee +
+                    (jobRequest.adaFeePerNum * jobRequest.numCount))
+            );
+            s_tokenFeesCollected += _calculateShare(
+                10 * 100,
+                (jobRequest.baseTokenFee +
+                    (jobRequest.tokenFeePerNum * jobRequest.numCount))
+            );
+            _calculateOracleFees(
+                jobRequest.baseTokenFee,
+                jobRequest.adaFeePerNum,
+                jobRequest.baseTokenFee,
+                jobRequest.tokenFeePerNum
+            );
             return randomNumbers;
         }
     }
@@ -150,13 +170,6 @@ contract ConclaveOracle is IConclaveOracle, ConclaveOracleOperator {
     function _distributeRewards(uint256 jobId) internal {}
 
     function _slashInvalidVotes(uint256 jobId) internal {}
-
-    function _calculateCompleteness(
-        uint32 responses,
-        uint256 totalExpectedResponses
-    ) internal pure returns (uint256) {
-        return (responses * 10_000) / totalExpectedResponses;
-    }
 
     function _refundFees(uint256 jobId) internal {
         JobRequest storage jobRequest = s_jobRequests[jobId];
