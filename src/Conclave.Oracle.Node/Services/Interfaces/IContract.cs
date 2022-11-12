@@ -1,7 +1,6 @@
-namespace Conclave.Oracle.Node.Interfaces;
+namespace Conclave.Oracle.Node.Services.Interfaces;
 
 interface IContract
 {
-    string ContractAddress { get; }
-    string PrivateKey { get; }
+    string ContractAddress { get; init; }
 }
