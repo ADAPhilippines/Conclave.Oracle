@@ -7,8 +7,13 @@ interface IConclaveOracle {
         uint256 fee,
         uint256 feePerNum,
         uint256 tokenFee,
-        uint256 tokenFeePerNum
+        uint256 tokenFeePerNum,
+        uint24 minValidator,
+        uint24 maxValidator
     ) external payable returns (uint256 jobId);
 
-    function aggregateResult(uint256 jobId) external returns (uint256);
+    function aggregateResult(uint256 jobId)
+        external
+        payable
+        returns (uint256[] memory);
 }
