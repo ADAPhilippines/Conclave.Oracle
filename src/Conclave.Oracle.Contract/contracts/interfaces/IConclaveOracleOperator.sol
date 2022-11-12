@@ -4,11 +4,7 @@ pragma solidity ^0.8.17;
 interface IConclaveOracleOperator {
     function delegateNode(address node) external;
 
-    function acceptJob(
-        uint256 jobId,
-        uint256 minFeeReward,
-        uint256 minTokenFeeReward
-    ) external;
+    function acceptJob(uint256 jobId) external;
 
     function submitResponse(uint256 jobIb, uint256[] calldata response)
         external;
