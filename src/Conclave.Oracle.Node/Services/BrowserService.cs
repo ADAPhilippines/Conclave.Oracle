@@ -39,7 +39,7 @@ public class BrowserService : IAsyncDisposable
         _logger.LogInformation("Launching Browser");
         Browser = await Puppeteer.LaunchAsync(new()
         {
-            Headless = false
+            Headless = true
         });
         _logger.LogInformation("Browser launched succesfully.");
         Page = await Browser.NewPageAsync();
@@ -59,7 +59,7 @@ public class BrowserService : IAsyncDisposable
     }
 
     public async Task<T?> InvokeFunctionAsync<T>(string functionName, params object[] p)
-    {
+    {   
         if (Page is not null)
             return await Page.EvaluateFunctionAsync<T>(functionName, p);
         else
