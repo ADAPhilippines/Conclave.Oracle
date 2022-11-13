@@ -10,12 +10,11 @@ public static class BrowseServiceExtension
         serviceCollection.AddSingleton<BrowserService>((serviceProvider) =>
         {
             IServer? server = serviceProvider.GetService<IServer>();
-            HttpClient? httpClient = serviceProvider.GetService<HttpClient>();
             ILogger<BrowserService>? logger = serviceProvider.GetService<ILogger<BrowserService>>();
             BrowserService browserService;
-            if (server is not null && httpClient is not null && logger is not null)
+            if (server is not null && logger is not null)
             {
-                browserService = new BrowserService(server, httpClient, logger);
+                browserService = new BrowserService(server, logger);
                 _ = browserService.InitializeAsync();
             }
             else
