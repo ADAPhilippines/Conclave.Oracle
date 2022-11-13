@@ -2,20 +2,28 @@
 pragma solidity ^0.8.17;
 
 interface IConclaveOracle {
-    function createJobRequest(
-        uint256 numCount,
+    function requestRandomNumbers(
+        uint24 numCount,
         uint256 fee,
-        uint256 tokenFee
-    ) external;
+        uint256 feePerNum,
+        uint256 tokenFee,
+        uint256 tokenFeePerNum,
+        uint24 minValidator,
+        uint24 maxValidator
+    ) external payable returns (uint256 jobId);
 
-    function calculateOracleFees() external;
+    function aggregateResult(uint256 jobId)
+        external
+        payable
+        returns (uint256[] memory);
 
-    function getOracleFees()
+    function getAverageOracleFees()
         external
         view
-        returns (uint256 fee, uint256 tokenFee);
-
-    function fulfillRandomNumbers(uint256 jobId) external;
-
-    function distributeRewards(uint256 jobId) external;
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
 }
